@@ -1,7 +1,7 @@
 var instance_skel = require('../../instance_skel');
 var fs = require('fs');
 
-var instance_api  = require('./internalAPI');
+var internal_api  = require('./internalAPI');
 var actions       = require('./actions');
 var feedback      = require('./feedback');
 var presets       = require('./presets');
@@ -44,7 +44,7 @@ class instance extends instance_skel {
 			...feedback,
 			...presets,
 			...variables,
-			...instance_api
+			...internal_api
 		});
 
 		this.clientId = id;
@@ -76,7 +76,22 @@ class instance extends instance_skel {
 		switch (action.action) {
 
 			case 'push':
+				this.runAction(action.action, { page: opt.page, bank: opt.bank });
 				break;
+
+			case 'release':
+				this.runAction(action.action, { page: opt.page, bank: opt.bank });
+				break;
+		}
+	}
+
+	async runAction (action, args) {
+		if (this.isConnected) {
+			try {
+				await this.clientCommand(this.config.remote_id, action, args);
+			} catch (e) {
+				this.log('error', `Error running action: ${action}: ${e.message}`);
+			}
 		}
 	}
 
@@ -116,6 +131,7 @@ class instance extends instance_skel {
 	 */
 	destroy() {
 		this.isRunning = false;
+		this.isConnected = false;
 
 		if (this.socket !== undefined) {
 			this.socket.killAllChannels();
@@ -138,13 +154,48 @@ class instance extends instance_skel {
 		log = this.log;
 		this.isRunning = true;
 		this.banks = [];
+		this.isConnected = false;
+		this.initialConnect = false;
+		this.intervalTimer = setInterval(() => this.tick(), 10000);
 
 		this.initVariables();
 		this.initFeedbacks();
 		this.initPresets();
 		this.checkFeedbacks('main');
 
-//		this.init_socket();
+		if (this.config.remote_id) {
+			this.status(this.STATUS_WARNING, 'Connecting...');
+			this.init_socket();
+		}
+	}
+
+	async tick() {
+		debug('TICKING');
+		if (this.socket && this.socket.state === this.socket.OPEN) {
+			debug('has socket');
+			try {
+				const result = await this.socket.invoke('companion-alive', this.config.remote_id)
+				if (result) {
+					if (!this.isConnected) {
+						this.status(this.STATUS_OK, 'Connected');
+						this.isConnected = true;
+						this.initialConnect = false;
+
+						const banks = await this.clientCommand(this.config.remote_id, 'getBanks', {})
+						this.banks = banks;
+
+						this.checkFeedbacks('main');
+					}
+				}
+			} catch (e) {
+				if (this.isConnected || this.initialConnect) {
+					this.status(this.STATUS_ERROR, 'Connection error');
+					this.isConnected = false;
+					this.initialConnect = false;
+					this.log('error', `Connection error`);
+				}
+			}
+		}
 	}
 
 	/**
@@ -178,32 +229,43 @@ class instance extends instance_skel {
 			while (this.isRunning) {
 				for await (let _event of this.socket.listener("connect")) {  // eslint-disable-line
 					debug('Socket is connected')
+					this.initialConnect = true;
 
 					try {
-						const banks = await this.clientCommand(this.config.remote_id, 'getBanks', {})
-						console.log("Initial banks: ", banks.length);
-						this.banks = banks;
+						await this.tick();
+					} catch (e) {}
 
-						this.checkFeedbacks('main');
-
-					} catch (e) {
-						this.log("error", "Error fetching remote banks: " + e.message);
-					}
 				}
-				await delay(1000);
+				await new Promise(resolve => setTimeout(resolve, 1000));
 			}
 		})();
 
 		(async () => {
-			for await (let data of this.socket.subscribe('companion-banks:' + this.config.remote_id)) {
-				this.log("info", "Message from remote companion: " + JSON.stringify(data));
+			while (this.isRunning) {
+				for await (let data of this.socket.subscribe('companion-banks:' + this.config.remote_id)) {
+					if (data.type === 'single') {
+						try {
+							this.banks[data.page][data.bank] = data.data;
+							this.checkFeedbacks('main');
+						} catch (e) {}
+					} else if (data.type === 'full') {
+						try {
+							this.banks = data.data;
+							this.checkFeedbacks('main');
+						} catch (e) {}
+					}
+				}
+			}
+		})();
 
-				if (data.type === 'single') {
-					this.banks[data.page][data.bank] = data.data;
-					this.checkFeedbacks('main');
-				} else if (data.type === 'full') {
-					this.banks = data.data;
-					this.checkFeedbacks('main');
+		(async () => {
+			while (this.isRunning) {
+				for await (let data of this.socket.listener('error')) {
+					if (this.isConnected) {
+						this.isConnected = false;
+						this.status(this.STATUS_ERROR, 'Connection error');
+						this.log("error", "Cloud connection error.");
+					}
 				}
 			}
 		})();
@@ -239,6 +301,7 @@ class instance extends instance_skel {
 
 		this.config = config;
 
+		this.status(this.STATUS_WARNING, 'Connecting...');
 		this.init_socket();
 	}
 }
