@@ -14,17 +14,13 @@ var debug;
 var log;
 
 /**
- * Companion instance class for the Blackmagic VideoHub Routers.
- * 
- * !!! This class is being used by the bmd-multiview16 module, be careful !!!
+ * Companion instance class for the Bitfocus Cloud
  *
  * @extends instance_skel
  * @version 1.0.0
  * @since 1.0.0
  * @author Håkon Nessjøen <haakon@bitfocus.io>
  * @author Keith Rocheck <keith.rocheck@gmail.com>
- * @author Peter Schuster
- * @author Jim Amen <jim.amen50@gmail.com>
  */
 class instance extends instance_skel {
 
@@ -157,6 +153,7 @@ class instance extends instance_skel {
 		this.isConnected = false;
 		this.initialConnect = false;
 		this.intervalTimer = setInterval(() => this.tick(), 10000);
+		this.knownIds = {};
 
 		this.initVariables();
 		this.initFeedbacks();
@@ -213,17 +210,31 @@ class instance extends instance_skel {
 		}
 
 		debug('Connecting');
-		this.socket = SCClient.create({
-			hostname: '127.0.0.1',
-			port: 8001,
-			secure: false,
-			autoReconnectOptions: {
-				initialDelay: 1000, //milliseconds
-				randomness: 500, //milliseconds
-				multiplier: 1.5, //decimal
-				maxDelay: 20000 //milliseconds
-			}
-		});
+		if (process.env.NODE_ENV === 'production') {
+			this.socket = SCClient.create({
+				hostname: 'oal-cluster.staging.bitfocus.io',
+				port: 443,
+				secure: true,
+				autoReconnectOptions: {
+					initialDelay: 1000, //milliseconds
+					randomness: 500, //milliseconds
+					multiplier: 1.5, //decimal
+					maxDelay: 20000 //milliseconds
+				}
+			});
+		} else {
+			this.socket = SCClient.create({
+				hostname: '127.0.0.1',
+				port: 8001,
+				secure: false,
+				autoReconnectOptions: {
+					initialDelay: 1000, //milliseconds
+					randomness: 500, //milliseconds
+					multiplier: 1.5, //decimal
+					maxDelay: 20000 //milliseconds
+				}
+			});
+		}
 
 		(async () => {
 			while (this.isRunning) {
