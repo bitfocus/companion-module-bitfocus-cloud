@@ -182,6 +182,7 @@ class instance extends instance_skel {
 						this.banks = banks;
 
 						this.checkFeedbacks('main');
+						this.initPresets();
 					}
 				}
 			} catch (e) {
@@ -258,11 +259,13 @@ class instance extends instance_skel {
 						try {
 							this.banks[data.page][data.bank] = data.data;
 							this.checkFeedbacks('main');
+							this.initPresets();
 						} catch (e) {}
 					} else if (data.type === 'full') {
 						try {
 							this.banks = data.data;
 							this.checkFeedbacks('main');
+							this.initPresets();
 						} catch (e) {}
 					}
 				}
