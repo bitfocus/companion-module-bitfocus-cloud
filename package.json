@@ -1,0 +1,32 @@
+{
+	"name": "bitfocus-cloud",
+	"version": "1.0.0",
+	"api_version": "1.0.0",
+	"keywords": [
+		"Cloud"
+	],
+	"manufacturer": "Bitfocus AS",
+	"product": "Cloud Connect",
+	"shortname": "cloud",
+	"description": "Module to remote control a Companion instance via the Bitfocus Cloud service",
+	"main": "index.js",
+	"scripts": {
+		"test": "echo \"Error: no test specified\" && exit 1"
+	},
+	"author": "Håkon Nessjøen <haakon@bitfocus.io>",
+	"contributors": [
+		"Keith Rocheck <keith.rocheck@gmail.com>"
+	],
+	"license": "MIT",
+	"homepage": "https://github.com/bitfocus/companion-module-bitfocus-cloud#readme",
+	"bugs": {
+		"url": "https://github.com/bitfocus/companion-module-bitfocus-cloud/issues"
+	},
+	"dependencies": {
+		"socketcluster-client": "^16.0.2"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/bitfocus/companion-module-bitfocus-cloud.git"
+	}
+}
