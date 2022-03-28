@@ -181,6 +181,18 @@ class instance extends instance_skel {
 
 	regionConfigFields() {
 		console.log('this.regions', this.regions)
+		return [{
+			type: 'dropdown',
+			multiple: true,
+			id: 'region',
+			label: "Cloud region",
+			choices: [...this.regions.map((region) => ({
+				id: region.id,
+				label: region.label + '(' + region.location + ')',
+			})), { id: 'test', label: 'Test' }],
+			width: 12,
+			default: false,
+		}];
 		return this.regions.map((region) => ({
 			type: 'checkbox',
 			id: 'region_' + region.id,
@@ -194,6 +206,9 @@ class instance extends instance_skel {
 		debug('TICKING')
 		if (this.regions.length === 0) {
 			initRegions();
+			if (this.regions.length > 0) {
+				this.init_socket();
+			}
 		}
 
 		if (this.socket && this.socket.state === this.socket.OPEN) {
@@ -231,16 +246,23 @@ class instance extends instance_skel {
 	 * @since 1.0.0
 	 */
 	init_socket() {
+		// Regions are not ready, wait for them to be
+		if (this.regions.length === 0) {
+			return;
+		}
+
 		if (this.socket) {
 			this.socket.killAllChannels()
 			this.socket.killAllListeners()
 			this.socket.disconnect()
 		}
 
-		debug('Connecting')
+		const regions = this.regions.filter((region) => this.config.region.includes(region.id))
+
+		debug('Connecting to %o', regions);
 
 		this.socket = SCClient.create({
-			hostname: 'oal-cluster.staging.bitfocus.io',
+			hostname: regions[0].hostname, // TODO: multi-region support
 			port: 443,
 			secure: true,
 			autoReconnectOptions: {
