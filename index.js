@@ -165,12 +165,13 @@ class instance extends instance_skel {
 	}
 
 	initRegions() {
-		this.system.emit('config_get', 'infrastructure', (infrastructure) => {
+		this.system.emit('config_get', 'cloud_servers', (regions) => {
 			try {
-				if (Array.isArray(infrastructure.cloud.regions)) {
-					this.regions = infrastructure.cloud.regions
+				console.log("INIT REGIONS: ", regions);
+				if (regions instanceof Array) {
+					this.regions = regions
 				} else {
-					console.log('what is', infras)
+					console.log('what is', regions)
 				}
 			} catch (e) {
 				console.log('Malformed cloud region', e)
@@ -191,6 +192,10 @@ class instance extends instance_skel {
 
 	async tick() {
 		debug('TICKING')
+		if (this.regions.length === 0) {
+			initRegions();
+		}
+
 		if (this.socket && this.socket.state === this.socket.OPEN) {
 			debug('has socket')
 			try {
@@ -221,7 +226,7 @@ class instance extends instance_skel {
 
 	/**
 	 * INTERNAL: use setup data to initalize the tcp socket object.
-	 *
+	 *	
 	 * @access protected
 	 * @since 1.0.0
 	 */
