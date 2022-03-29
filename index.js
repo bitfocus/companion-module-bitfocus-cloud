@@ -87,7 +87,7 @@ class instance extends instance_skel {
 			try {
 				await this.clientCommand(this.config.remote_id, action, args)
 			} catch (e) {
-				this.log('error', `Error running action: ${action}: ${e.message}`)
+				this.log('warning', `Error running action: ${action}: ${e.message}`)
 			}
 		}
 	}
@@ -179,6 +179,35 @@ class instance extends instance_skel {
 		})
 	}
 
+	checkStatus() {
+		let connected = 0;
+		let disconnected = 0;
+		this.sockets.forEach(socket => {
+			if (socket.cloudConnected) {
+				connected++;
+			} else {
+				disconnected++;
+			}
+		})
+
+		if (connected === 0) {
+			this.initialConnect = true
+			this.status(this.STATUS_ERROR, 'Disconnected');
+		} else if (connected > 0 && disconnected > 0) {
+			this.status(this.STATUS_WARNING, 'Some connections are not ready');
+		} else if (connected > 0 && disconnected === 0) {
+			this.status(this.STATUS_OK);
+		}
+
+		if (connected > 0) {
+			this.isConnected = true;
+		} else {
+			this.isConnected = false;
+		}
+
+		console.log("STATUS: ", { connected, disconnected });
+	}
+
 	regionConfigFields() {
 		console.log('this.regions', this.regions)
 		return [{
@@ -211,15 +240,16 @@ class instance extends instance_skel {
 			}
 		}
 
+		this.checkStatus();
+
 		// TODO: Rewrite
 		this.sockets.forEach(async (socket) => {
-			if (socket.state === socket.OPEN) {
-				debug('has socket(s)')
+			if (socket.cloudConnected) {
 				try {
 					const result = await socket.invoke('companion-alive', this.config.remote_id)
 					if (result) {
-						if (!this.isConnected) {
-							this.status(this.STATUS_OK, 'Connected')
+						if (this.initialConnect) {
+							//this.status(this.STATUS_OK, 'Connected')
 							this.isConnected = true
 							this.initialConnect = false
 
@@ -233,10 +263,9 @@ class instance extends instance_skel {
 				} catch (e) {
 					// TODO: check status of all sockets before changing status
 					if (this.isConnected || this.initialConnect) {
-						this.status(this.STATUS_ERROR, 'Connection error')
-						this.isConnected = false
-						this.initialConnect = false
-						this.log('error', `Connection error`)
+						//this.status(this.STATUS_ERROR, 'Connection error')
+						// Remove region??
+						this.log('warning', `Connection error on region ${region.label}`)
 					}
 				}
 			}
@@ -261,9 +290,12 @@ class instance extends instance_skel {
 		;(async () => {
 			while (this.isRunning && this.sockets.includes(socket)) {
 				for await (let _event of socket.listener('connect')) {
+					socket.cloudConnected = true;
+
+					this.checkStatus();
+
 					// eslint-disable-line
 					debug('Socket is connected')
-					this.initialConnect = true
 
 					try {
 						await this.tick()
@@ -306,11 +338,12 @@ class instance extends instance_skel {
 		;(async () => {
 			while (this.isRunning && this.sockets.includes(socket)) {
 				for await (let data of socket.listener('error')) {
-					if (this.isConnected) { // TODO: Check all connections before updating status
-						this.isConnected = false
-						this.status(this.STATUS_ERROR, 'Connection error')
-						this.log('error', 'Cloud connection error.')
+					socket.cloudConnected = false
+					if (this.isConnected) {
+						this.checkStatus();
+						//this.status(this.STATUS_ERROR, 'Connection error')
 					}
+					this.log('warning', 'Cloud connection error on region ' + region.label)
 				}
 			}
 		})()
@@ -324,6 +357,7 @@ class instance extends instance_skel {
 		});
 		this.sockets.length = 0;
 		this.isConnected = false;
+		this.initialConnect = true
 	}
 
 	/**
@@ -339,6 +373,8 @@ class instance extends instance_skel {
 		}
 
 		this.disconnectAll();
+
+		this.initialConnect = true
 
 		const regions = this.regions.filter((region) => this.config.region.includes(region.id))
 
