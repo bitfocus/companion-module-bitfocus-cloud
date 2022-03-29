@@ -45,6 +45,7 @@ class instance extends instance_skel {
 
 		this.regions = [];
 		this.sockets = [];
+		this.updateIds = [];
 
 		this.actions() // export actions
 	}
@@ -275,6 +276,13 @@ class instance extends instance_skel {
 		;(async () => {
 			while (this.isRunning && this.sockets.includes(socket)) {
 				for await (let data of socket.subscribe('companion-banks:' + this.config.remote_id)) {
+					const updateId = data.updateId;
+
+					if (this.updateIds.includes(updateId)) {
+						return;
+					}
+					this.updateIds.push(updateId);
+
 					if (data.type === 'single') {
 						try {
 							this.banks[data.page][data.bank] = data.data
@@ -287,6 +295,10 @@ class instance extends instance_skel {
 							this.checkFeedbacks('main')
 							this.initPresets()
 						} catch (e) {}
+					}
+
+					while (this.updateIds.length > 100) {
+						this.updateIds.shift();
 					}
 				}
 			}
