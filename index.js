@@ -130,6 +130,11 @@ class instance extends instance_skel {
 		this.isRunning = false
 		this.isConnected = false
 
+		if (this.intervalTimer) {
+			clearInterval(this.intervalTimer)
+			this.intervalTimer = undefined;
+		}
+
 		this.disconnectAll();
 
 		this.debug('destroy', this.id)
@@ -265,7 +270,7 @@ class instance extends instance_skel {
 					if (this.isConnected || this.initialConnect) {
 						//this.status(this.STATUS_ERROR, 'Connection error')
 						// Remove region??
-						this.log('warning', `Connection error on region ${region.label}`)
+						this.log('warning', `Connection error: ${e.message}`)
 					}
 				}
 			}
