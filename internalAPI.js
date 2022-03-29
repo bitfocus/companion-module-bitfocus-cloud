@@ -16,27 +16,41 @@ module.exports = {
 		return new Promise((resolve, reject) => {
 			const timer = setTimeout(() => {
 				reject(new BitfocusCloudError('call_timeout', 'ClientCommand timeout for ' + name));
-				this.socket.unsubscribe(replyChannel);
-				this.socket.closeChannel(replyChannel);
+				this.sockets.forEach(socket => {
+					socket.unsubscribe(replyChannel);
+					socket.closeChannel(replyChannel);
+				});
 			}, 10000);
 	
-			(async () => {
-				for await (let data of this.socket.subscribe(replyChannel)) {
-					console.log('::::::: Got response for command %o', remoteId + ':' + name)
-					clearTimeout(timer);
-					if (data.error) {
-						reject(new BitfocusCloudError('rpc_error', 'rpc error: ' + data.error));
-					} else {
-						resolve(data.result);
+			let isHandeled = false;
+			this.sockets.forEach(socket => {
+				(async () => {
+					for await (let data of socket.subscribe(replyChannel)) {
+						if (isHandeled) {
+							socket.unsubscribe(replyChannel);
+							socket.closeChannel(replyChannel);
+							return
+						}
+
+						console.log('::::::: Got response for command %o', remoteId + ':' + name)
+						clearTimeout(timer);
+						isHandeled = true;
+
+						if (data.error) {
+							reject(new BitfocusCloudError('rpc_error', 'rpc error: ' + data.error));
+						} else {
+							resolve(data.result);
+						}
+
+						socket.unsubscribe(replyChannel);
+						socket.closeChannel(replyChannel);
+						break;
 					}
+				})();
 
-					this.socket.unsubscribe(replyChannel);
-					this.socket.closeChannel(replyChannel);
-					break;
-				}
-			})();
-
-			this.socket.transmitPublish(`companionProc:${remoteId}:${name}`, { args, callerId });
+				console.log("%%%%% SENDING COMMAND TO A CONNECTION: ", `companionProc:${remoteId}:${name}`);
+				socket.transmitPublish(`companionProc:${remoteId}:${name}`, { args, callerId });
+			});
 		});
 	}
 

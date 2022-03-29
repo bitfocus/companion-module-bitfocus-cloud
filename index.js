@@ -43,6 +43,9 @@ class instance extends instance_skel {
 
 		this.clientId = id
 
+		this.regions = [];
+		this.sockets = [];
+
 		this.actions() // export actions
 	}
 
@@ -126,11 +129,7 @@ class instance extends instance_skel {
 		this.isRunning = false
 		this.isConnected = false
 
-		if (this.socket !== undefined) {
-			this.socket.killAllChannels()
-			this.socket.killAllListeners()
-			this.socket.disconnect()
-		}
+		this.disconnectAll();
 
 		this.debug('destroy', this.id)
 	}
@@ -160,7 +159,7 @@ class instance extends instance_skel {
 
 		if (this.config.remote_id) {
 			this.status(this.STATUS_WARNING, 'Connecting...')
-			this.init_socket()
+			this.init_sockets()
 		}
 	}
 
@@ -169,7 +168,7 @@ class instance extends instance_skel {
 			try {
 				console.log("INIT REGIONS: ", regions);
 				if (regions instanceof Array) {
-					this.regions = regions
+					this.regions = [ ...regions, { id: 'test', label: 'test', hostname: 'no-oslo-cloud1.bitfocus.io' } ];
 				} else {
 					console.log('what is', regions)
 				}
@@ -186,10 +185,10 @@ class instance extends instance_skel {
 			multiple: true,
 			id: 'region',
 			label: "Cloud region",
-			choices: [...this.regions.map((region) => ({
+			choices: this.regions.map((region) => ({
 				id: region.id,
 				label: region.label + '(' + region.location + ')',
-			})), { id: 'test', label: 'Test' }],
+			})),
 			width: 12,
 			default: false,
 		}];
@@ -207,74 +206,60 @@ class instance extends instance_skel {
 		if (this.regions.length === 0) {
 			initRegions();
 			if (this.regions.length > 0) {
-				this.init_socket();
+				this.init_sockets();
 			}
 		}
 
-		if (this.socket && this.socket.state === this.socket.OPEN) {
-			debug('has socket')
-			try {
-				const result = await this.socket.invoke('companion-alive', this.config.remote_id)
-				if (result) {
-					if (!this.isConnected) {
-						this.status(this.STATUS_OK, 'Connected')
-						this.isConnected = true
+		// TODO: Rewrite
+		this.sockets.forEach(async (socket) => {
+			if (socket.state === socket.OPEN) {
+				debug('has socket(s)')
+				try {
+					const result = await socket.invoke('companion-alive', this.config.remote_id)
+					if (result) {
+						if (!this.isConnected) {
+							this.status(this.STATUS_OK, 'Connected')
+							this.isConnected = true
+							this.initialConnect = false
+
+							const banks = await this.clientCommand(this.config.remote_id, 'getBanks', {})
+							this.banks = banks
+
+							this.checkFeedbacks('main')
+							this.initPresets()
+						}
+					}
+				} catch (e) {
+					// TODO: check status of all sockets before changing status
+					if (this.isConnected || this.initialConnect) {
+						this.status(this.STATUS_ERROR, 'Connection error')
+						this.isConnected = false
 						this.initialConnect = false
-
-						const banks = await this.clientCommand(this.config.remote_id, 'getBanks', {})
-						this.banks = banks
-
-						this.checkFeedbacks('main')
-						this.initPresets()
+						this.log('error', `Connection error`)
 					}
 				}
-			} catch (e) {
-				if (this.isConnected || this.initialConnect) {
-					this.status(this.STATUS_ERROR, 'Connection error')
-					this.isConnected = false
-					this.initialConnect = false
-					this.log('error', `Connection error`)
-				}
 			}
-		}
+		});
 	}
 
-	/**
-	 * INTERNAL: use setup data to initalize the tcp socket object.
-	 *	
-	 * @access protected
-	 * @since 1.0.0
-	 */
-	init_socket() {
-		// Regions are not ready, wait for them to be
-		if (this.regions.length === 0) {
-			return;
-		}
-
-		if (this.socket) {
-			this.socket.killAllChannels()
-			this.socket.killAllListeners()
-			this.socket.disconnect()
-		}
-
-		const regions = this.regions.filter((region) => this.config.region.includes(region.id))
-
-		debug('Connecting to %o', regions);
-
-		this.socket = SCClient.create({
-			hostname: regions[0].hostname, // TODO: multi-region support
+	addSocket(region) {
+		const socket = SCClient.create({
+			hostname: region.hostname,
 			port: 443,
 			secure: true,
 			autoReconnectOptions: {
 				initialDelay: 1000, //milliseconds
-				randomness: 500, //milliseconds
+				randomness: 2000, //milliseconds
 				multiplier: 1.5, //decimal
-				maxDelay: 20000, //milliseconds
+				maxDelay: 10000, //milliseconds
 			},
 		})
+		this.sockets.push(socket);
+		debug('adding connection for %o', region.hostname);
+
 		;(async () => {
-			while (this.isRunning) {
-				for await (let _event of this.socket.listener('connect')) {
+			while (this.isRunning && this.sockets.includes(socket)) {
+				for await (let _event of socket.listener('connect')) {
 					// eslint-disable-line
 					debug('Socket is connected')
 					this.initialConnect = true
@@ -285,10 +270,11 @@ class instance extends instance_skel {
 				}
 				await new Promise((resolve) => setTimeout(resolve, 1000))
 			}
+			debug('old socket cleaned up');
 		})()
 		;(async () => {
-			while (this.isRunning) {
-				for await (let data of this.socket.subscribe('companion-banks:' + this.config.remote_id)) {
+			while (this.isRunning && this.sockets.includes(socket)) {
+				for await (let data of socket.subscribe('companion-banks:' + this.config.remote_id)) {
 					if (data.type === 'single') {
 						try {
 							this.banks[data.page][data.bank] = data.data
@@ -306,9 +292,9 @@ class instance extends instance_skel {
 			}
 		})()
 		;(async () => {
-			while (this.isRunning) {
-				for await (let data of this.socket.listener('error')) {
-					if (this.isConnected) {
+			while (this.isRunning && this.sockets.includes(socket)) {
+				for await (let data of socket.listener('error')) {
+					if (this.isConnected) { // TODO: Check all connections before updating status
 						this.isConnected = false
 						this.status(this.STATUS_ERROR, 'Connection error')
 						this.log('error', 'Cloud connection error.')
@@ -316,6 +302,39 @@ class instance extends instance_skel {
 				}
 			}
 		})()
+	}
+
+	disconnectAll() {
+		this.sockets.forEach((socket) => {
+			socket.killAllChannels()
+			socket.killAllListeners()
+			socket.disconnect()
+		});
+		this.sockets.length = 0;
+		this.isConnected = false;
+	}
+
+	/**
+	 * INTERNAL: use setup data to initalize the tcp socket object.
+	 *	
+	 * @access protected
+	 * @since 1.0.0
+	 */
+	init_sockets() {
+		// Regions are not ready, wait for them to be
+		if (this.regions.length === 0) {
+			return;
+		}
+
+		this.disconnectAll();
+
+		const regions = this.regions.filter((region) => this.config.region.includes(region.id))
+
+		debug('Connecting to %o', regions);
+
+		regions.forEach((region) => {
+			this.addSocket(region);
+		});
 	}
 
 	/**
@@ -348,7 +367,7 @@ class instance extends instance_skel {
 		this.config = config
 
 		this.status(this.STATUS_WARNING, 'Connecting...')
-		this.init_socket()
+		this.init_sockets()
 	}
 }
 
