@@ -3,9 +3,9 @@
 	"version": "1.0.0",
 	"api_version": "1.0.0",
 	"keywords": [ "Cloud" ],
-	"manufacturer": "Bitfocus AS",
-	"product": "Cloud connect",
-	"shortname": "cloud",
+	"manufacturer": "Bitfocus",
+	"product": "Companion Cloud",
+	"shortname": "companion-cloud",
 	"description": "",
 	"main": "index.js",
 	"scripts": {

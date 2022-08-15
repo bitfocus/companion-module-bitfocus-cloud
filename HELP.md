@@ -1,8 +1,8 @@
-## Bitfocus Companion Cloud connector
+## Bitfocus Companion Cloud
 
 ---
 
-Connect to another Companion instance running anywhere in the world using only the "Super secret key" of the other Companion instance. (requires license)
+Connect to another Companion instance running anywhere in the world using only the "super secret key" of the other Companion instance. (premium service, requires license)
 
 ### Cloud redundance
 
