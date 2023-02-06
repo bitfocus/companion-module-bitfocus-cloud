@@ -22,7 +22,6 @@ import {
 	SomeCompanionConfigField,
 } from '@companion-module/base'
 import { GetConfigFields, CloudConfig } from './config'
-import { initVariables } from './variables'
 import { GetFeedbacks } from './feedback'
 import { CloudClient, CCModuleState, CCLogLevel } from 'companion-cloud-client'
 import { CCLogLevel2LogLevel, CCModuleState2InstanceState, CreateBankControlId } from './utils'
@@ -176,7 +175,6 @@ class CloudInstance extends InstanceBase<CloudConfig> {
 	 */
 	public InitVariables(): void {
 		this.log('info', 'initializing variables')
-		initVariables(this)
 	}
 }
 
