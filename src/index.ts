@@ -125,7 +125,6 @@ class CloudInstance extends InstanceBase<CloudConfig> {
 	}
 
 	updateAll(alldata: { page: number; bank: number; data: Partial<CompanionButtonStyleProps> }[]) {
-		console.log('UPDATE ALLE: ', alldata)
 		for (const { page, bank, data } of alldata) {
 			const remControlId = CreateBankControlId(page, bank)
 			this.bankCache[remControlId] = {
