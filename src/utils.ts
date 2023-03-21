@@ -39,6 +39,7 @@ export interface InstanceBaseExt<TConfig> extends InstanceBase<TConfig> {
 	[x: string]: any
 	cloudClient: CloudClient | null
 	config: TConfig
+	cloudState: InstanceStatus
 	UpdateVariablesValues(): void
 	InitVariables(): void
 }

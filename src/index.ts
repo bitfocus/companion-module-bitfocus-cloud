@@ -25,6 +25,8 @@ import { GetConfigFields, CloudConfig } from './config'
 import { GetFeedbacks } from './feedback'
 import { CloudClient, CCModuleState, CCLogLevel } from 'companion-cloud-client'
 import { CCLogLevel2LogLevel, CCModuleState2InstanceState, CreateBankControlId } from './utils'
+import { GetActions } from './actions'
+import { GetPresetList } from './presets'
 
 /**
  * @description Companion instance class for Zoom
@@ -33,6 +35,24 @@ class CloudInstance extends InstanceBase<CloudConfig> {
 	public config: CloudConfig = {
 		uuid: '',
 	}
+
+	/**
+	 * @description preset update interval
+	 * @type {NodeJS.Timeout | null}
+	 */
+	public presetUpdateInterval: NodeJS.Timeout | null = null
+
+	/**
+	 * @description preset dirty flag
+	 * @type {boolean}
+	 */
+	public presetDirty = false
+
+	/**
+	 * @description the current cloud state
+	 * @type {InstanceStatus}
+	 */
+	public cloudState: InstanceStatus = InstanceStatus.Disconnected
 
 	/**
 	 * @description the current cloud uuid
@@ -71,12 +91,15 @@ class CloudInstance extends InstanceBase<CloudConfig> {
 		this.log('info', 'changing config!')
 
 		this.setFeedbackDefinitions(GetFeedbacks(this))
+		this.setActionDefinitions(GetActions(this))
+		this.setPresetDefinitions(GetPresetList(this))
 
 		if (this.uuid !== config.uuid) {
 			this.log('info', `changing uuid from ${this.uuid} to ${config.uuid}`)
 			this.uuid = config.uuid
 			this.cloudClient?.destroy()
 			this.updateStatus(InstanceStatus.Connecting, 'connecting to cloud')
+			this.cloudState = InstanceStatus.Connecting
 
 			this.cloudClient = new CloudClient(this.uuid)
 			this.cloudClient.on('error', (err: Error) => {
@@ -87,7 +110,9 @@ class CloudInstance extends InstanceBase<CloudConfig> {
 			})
 			this.cloudClient.on('state', (state: CCModuleState, message?: string) => {
 				this.log('info', 'state changed: ' + state + ' ' + message)
-				this.updateStatus(CCModuleState2InstanceState(state), message)
+				const newState = CCModuleState2InstanceState(state)
+				this.updateStatus(newState, message)
+				this.cloudState = newState
 
 				if (state === 'OK' && this.cloudClient) {
 					this.cloudClient
@@ -102,15 +127,21 @@ class CloudInstance extends InstanceBase<CloudConfig> {
 			})
 			this.cloudClient.on('update', (page: number, bank: number, data: Partial<CompanionButtonStyleProps>) => {
 				this.updateSingle(page, bank, data)
+				this.updatePresets();
 			})
 			this.cloudClient.on(
 				'updateAll',
 				(alldata: { page: number; bank: number; data: Partial<CompanionButtonStyleProps> }[]) => {
 					this.updateAll(alldata)
+					this.updatePresets();
 				}
 			)
 			await this.cloudClient.init()
 		}
+	}
+
+	updatePresets() {
+		this.presetDirty = true;
 	}
 
 	updateSingle(page: number, bank: number, data: Partial<CompanionButtonStyleProps>) {
@@ -151,6 +182,14 @@ class CloudInstance extends InstanceBase<CloudConfig> {
 		this.log('info', `Cloud client module is initializing!`)
 
 		await this.configUpdated(config)
+
+		// Dont update presets too often
+		this.presetUpdateInterval = setInterval(() => {
+			if (this.presetDirty) {
+				this.presetDirty = false;
+				this.setPresetDefinitions(GetPresetList(this))
+			}
+		}, 1000)
 	}
 
 	/**
@@ -160,6 +199,11 @@ class CloudInstance extends InstanceBase<CloudConfig> {
 		this.log('info', 'destroying instance')
 		this.cloudClient?.destroy()
 		this.cloudClient = null
+
+		if (this.presetUpdateInterval) {
+			clearInterval(this.presetUpdateInterval)
+			this.presetUpdateInterval = null
+		}
 	}
 
 	/**

@@ -41,9 +41,22 @@ export function GetActions(_instance: InstanceBaseExt<CloudConfig>): CompanionAc
 					default: 1,
 					label: 'Page',
 				},
+				{
+					type: 'number',
+					min: 1,
+					max: 32,
+					id: 'bank',
+					default: 1,
+					label: 'Bank',
+				},
 			],
 			callback: (_action): void => {
-				// button down
+				if (_instance.cloudClient) {
+					_instance.cloudClient.clientCommand('release', {
+						page: _action.options.page,
+						bank: _action.options.bank,
+					})
+				}
 			},
 		},
 		[ActionId.buttonDown]: {
@@ -57,9 +70,23 @@ export function GetActions(_instance: InstanceBaseExt<CloudConfig>): CompanionAc
 					default: 1,
 					label: 'Page',
 				},
+				{
+					type: 'number',
+					min: 1,
+					max: 32,
+					id: 'bank',
+					default: 1,
+					label: 'Bank',
+				},
 			],
 			callback: (_action): void => {
-				// Button
+				if (_instance.cloudClient) {
+					_instance.cloudClient.clientCommand('push', {
+						page: _action.options.page,
+						bank: _action.options.bank,
+					})
+				}
+
 			},
 		},
 	}
