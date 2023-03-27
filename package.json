@@ -16,12 +16,12 @@
 		"postinstall": "yarn build"
 	},
 	"engines": {
-        "node": ">=18.12.0"
-    },
+		"node": ">=18.12.0"
+	},
 	"license": "MIT",
 	"prettier": "@companion-module/tools/.prettierrc.json",
 	"dependencies": {
-		"@companion-module/base": "^1.1.1"
+		"@companion-module/base": "^1.4.0"
 	},
 	"devDependencies": {
 		"@companion-module/tools": "^0.5.2",

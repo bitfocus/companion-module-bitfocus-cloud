@@ -40,6 +40,10 @@ export function GetPresetList(_instance: InstanceBaseExt<CloudConfig>): Companio
 			const preset: CompanionPresetExt = {
 				name: `Page ${page} Bank ${bank}`,
 				style: {
+					text: '',
+					cloud: true,
+				} as any,
+				previewStyle: {
 					text: bankCache.text || '',
 					size: bankCache.size,
 					color: bankCache.color,
