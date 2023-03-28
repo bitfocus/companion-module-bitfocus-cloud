@@ -22,7 +22,7 @@
 	"prettier": "@companion-module/tools/.prettierrc.json",
 	"dependencies": {
 		"@companion-module/base": "^1.4.0",
-		"companion-cloud-client": "^1.0.1"
+		"companion-cloud-client": "^1.0.2"
 	},
 	"devDependencies": {
 		"@companion-module/tools": "^1.2.0",
