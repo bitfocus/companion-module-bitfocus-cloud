@@ -50,12 +50,16 @@ export function GetActions(_instance: InstanceBaseExt<CloudConfig>): CompanionAc
 					label: 'Bank',
 				},
 			],
-			callback: (_action): void => {
+			callback: async (_action): Promise<void> => {
 				if (_instance.cloudClient) {
-					_instance.cloudClient.clientCommand('release', {
-						page: _action.options.page,
-						bank: _action.options.bank,
-					})
+					try {
+						await _instance.cloudClient.clientCommand('release', {
+							page: _action.options.page,
+							bank: _action.options.bank,
+						})
+					} catch (e) {
+						_instance.log('error', 'Failed to release button: ' + (e instanceof Error ? e.message : e))
+					}
 				}
 			},
 		},
@@ -79,14 +83,17 @@ export function GetActions(_instance: InstanceBaseExt<CloudConfig>): CompanionAc
 					label: 'Bank',
 				},
 			],
-			callback: (_action): void => {
+			callback: async (_action): Promise<void> => {
 				if (_instance.cloudClient) {
-					_instance.cloudClient.clientCommand('push', {
-						page: _action.options.page,
-						bank: _action.options.bank,
-					})
+					try {
+						await _instance.cloudClient.clientCommand('push', {
+							page: _action.options.page,
+							bank: _action.options.bank,
+						})
+					} catch (e) {
+						_instance.log('error', 'Failed to release button: ' + (e instanceof Error ? e.message : e))
+					}
 				}
-
 			},
 		},
 	}

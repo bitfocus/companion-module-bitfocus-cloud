@@ -27,7 +27,7 @@ interface CompanionPresetDefinitionsExt {
 	[id: string]: CompanionPresetExt | undefined
 }
 export function GetPresetList(_instance: InstanceBaseExt<CloudConfig>): CompanionPresetDefinitions {
-	let presets: CompanionPresetDefinitionsExt = {}
+	const presets: CompanionPresetDefinitionsExt = {}
 
 	if (_instance.cloudState !== InstanceStatus.Ok && _instance.cloudState !== InstanceStatus.UnknownWarning) {
 		return presets
@@ -53,7 +53,7 @@ export function GetPresetList(_instance: InstanceBaseExt<CloudConfig>): Companio
 					cloud: true,
 				} as any,
 				type: 'button',
-				category: 'Page ' + (page),
+				category: 'Page ' + page,
 				feedbacks: [
 					{
 						feedbackId: 'change',

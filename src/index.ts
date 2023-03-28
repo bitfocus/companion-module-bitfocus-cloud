@@ -127,13 +127,13 @@ class CloudInstance extends InstanceBase<CloudConfig> {
 			})
 			this.cloudClient.on('update', (page: number, bank: number, data: Partial<CompanionButtonStyleProps>) => {
 				this.updateSingle(page, bank, data)
-				this.updatePresets();
+				this.updatePresets()
 			})
 			this.cloudClient.on(
 				'updateAll',
 				(alldata: { page: number; bank: number; data: Partial<CompanionButtonStyleProps> }[]) => {
 					this.updateAll(alldata)
-					this.updatePresets();
+					this.updatePresets()
 				}
 			)
 			await this.cloudClient.init()
@@ -141,7 +141,7 @@ class CloudInstance extends InstanceBase<CloudConfig> {
 	}
 
 	updatePresets() {
-		this.presetDirty = true;
+		this.presetDirty = true
 	}
 
 	updateSingle(page: number, bank: number, data: Partial<CompanionButtonStyleProps>) {
@@ -186,7 +186,7 @@ class CloudInstance extends InstanceBase<CloudConfig> {
 		// Dont update presets too often
 		this.presetUpdateInterval = setInterval(() => {
 			if (this.presetDirty) {
-				this.presetDirty = false;
+				this.presetDirty = false
 				this.setPresetDefinitions(GetPresetList(this))
 			}
 		}, 1000)
