@@ -3,7 +3,7 @@
 	"name": "bitfocus-cloud",
 	"shortname": "Cloud Module",
 	"description": "Bitfocus Cloud plugin for companion ",
-	"version": "1.0.0",
+	"version": "1.0.4",
 	"license": "MIT",
 	"repository": "git+https://github.com/bitfocus/companion-module-bitfocus-cloud.git",
 	"bugs": "https://github.com/bitfocus/companion-module-bitfocus-cloud/issues",
@@ -21,10 +21,6 @@
 		"entrypoint": "../dist/index.js"
 	},
 	"manufacturer": "Bitfocus",
-	"products": [
-		"Cloud"
-	],
-	"keywords": [
-		"cloud"
-	]
+	"products": ["Cloud"],
+	"keywords": ["cloud"]
 }
