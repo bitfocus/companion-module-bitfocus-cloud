@@ -25,7 +25,7 @@ export const GetConfigFields = (): SomeCompanionConfigField[] => {
 		{
 			type: 'textinput',
 			id: 'uuid',
-			label: 'Super secret key of the remote companion instance you want to remote control',
+			label: 'Secret key',
 			width: 12,
 			default: '',
 		},
@@ -33,7 +33,7 @@ export const GetConfigFields = (): SomeCompanionConfigField[] => {
 			type: 'static-text',
 			width: 12,
 			value:
-				'To use this module you need to have access to a companion instance has companion cloud licenses assigned. Check the Cloud section in companion to read more about how to enable this feature in a remote companion.',
+				'To use this module you need to have access to a Companion instance has Companion Cloud licenses assigned. Check the Cloud section in Companion to read more about how to enable this feature in a remote Companion.',
 			id: 'moduleinfo',
 			label: 'Important note',
 		},
