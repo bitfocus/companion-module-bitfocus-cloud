@@ -808,10 +808,10 @@ commander@^9.4.1:
   resolved "https://registry.npmjs.org/commander/-/commander-9.4.1.tgz"
   integrity sha512-5EEkTNyHNGFPD2H+c/dXXfQZYa/scCKasxWcXJaWnNJ99pnQN9Vnmqow+p+PlFPE63Q6mThaZws1T+HxfpgtPw==
 
-companion-cloud-client@^1.0.3:
-  version "1.0.3"
-  resolved "https://registry.yarnpkg.com/companion-cloud-client/-/companion-cloud-client-1.0.3.tgz#d0577389be54392176f10229095d12f5be7d5641"
-  integrity sha512-11P0PogACvrTKOrkrRhoiAf9AiGvnioUtGFQFMCPlBw3H6JzXTjAzeVTPesOB9RJVSNVXZioGd8++ttPjzz70Q==
+companion-cloud-client@^1.0.7:
+  version "1.0.7"
+  resolved "https://registry.yarnpkg.com/companion-cloud-client/-/companion-cloud-client-1.0.7.tgz#106b7c09ff44a5b97d86618dc9dc865b82fd8160"
+  integrity sha512-0GqSW1taZp3XZOPm1VaoCzO5cMIhEDo4xfjb0KXPojTzgzrNmouOFxYv2g2jdJ6QFZb6BUZHsHdd9BUANmdtIA==
   dependencies:
     axios "^0.27.2"
     socketcluster-client "^16.1.1"
