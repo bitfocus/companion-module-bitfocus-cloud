@@ -3,7 +3,7 @@
 	"name": "bitfocus-cloud",
 	"shortname": "cloud",
 	"description": "Bitfocus Companion Cloud plugin",
-	"version": "1.0.6",
+	"version": "1.0.7",
 	"license": "MIT",
 	"repository": "git+https://github.com/bitfocus/companion-module-bitfocus-cloud.git",
 	"bugs": "https://github.com/bitfocus/companion-module-bitfocus-cloud/issues",

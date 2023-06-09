@@ -119,6 +119,7 @@ class CloudInstance extends InstanceBase<CloudConfig> {
 						.clientCommand('allbanks')
 						.then((alldata: any) => {
 							this.updateAll(alldata)
+							this.updatePresets()
 						})
 						.catch((e) => {
 							this.log('error', 'Failed to get initial banks from companion: ' + e.message)
