@@ -21,12 +21,12 @@ import {
 	runEntrypoint,
 	SomeCompanionConfigField,
 } from '@companion-module/base'
-import { GetConfigFields, CloudConfig } from './config'
-import { GetFeedbacks } from './feedback'
+import { GetConfigFields, CloudConfig } from './config.js'
+import { GetFeedbacks } from './feedback.js'
 import { CloudClient, CCModuleState, CCLogLevel } from 'companion-cloud-client'
-import { CCLogLevel2LogLevel, CCModuleState2InstanceState, ControlLocation, CreateModuleControlId } from './utils'
-import { GetActions } from './actions'
-import { GetPresetList } from './presets'
+import { CCLogLevel2LogLevel, CCModuleState2InstanceState, ControlLocation, CreateModuleControlId } from './utils.js'
+import { GetActions } from './actions.js'
+import { GetPresetList } from './presets.js'
 
 /**
  * @description Companion instance class for Zoom

@@ -15,8 +15,8 @@
  *
  */
 import { CompanionActionDefinition, CompanionActionDefinitions } from '@companion-module/base'
-import { CloudConfig } from './config'
-import { CreateLocationFromLocationText, InstanceBaseExt } from './utils'
+import { CloudConfig } from './config.js'
+import { CreateLocationFromLocationText, InstanceBaseExt } from './utils.js'
 
 export enum ActionId {
 	buttonUp = 'buttonUp',

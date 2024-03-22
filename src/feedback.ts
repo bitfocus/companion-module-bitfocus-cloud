@@ -15,8 +15,8 @@
  *
  */
 import { CompanionFeedbackDefinitions, CompanionAdvancedFeedbackDefinition } from '@companion-module/base'
-import { CloudConfig } from './config'
-import { CreateLocationFromLocationText, CreateModuleControlId, InstanceBaseExt } from './utils'
+import { CloudConfig } from './config.js'
+import { CreateLocationFromLocationText, CreateModuleControlId, InstanceBaseExt } from './utils.js'
 import { cloneDeep } from 'lodash'
 
 export type FeedbackId = 'change'

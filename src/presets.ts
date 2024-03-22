@@ -1,8 +1,8 @@
 import { CompanionButtonPresetDefinition, CompanionPresetDefinitions, InstanceStatus } from '@companion-module/base'
-import { ActionId } from './actions'
-import { FeedbackId } from './feedback'
-import { ControlLocation } from './utils'
-import { type CloudInstance } from './index'
+import { ActionId } from './actions.js'
+import { FeedbackId } from './feedback.js'
+import { ControlLocation } from './utils.js'
+import { type CloudInstance } from './index.js'
 
 interface CompanionPresetExt extends CompanionButtonPresetDefinition {
 	locationSort: string
