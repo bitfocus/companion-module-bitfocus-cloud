@@ -16,9 +16,20 @@
  */
 import { CompanionFeedbackDefinitions, CompanionAdvancedFeedbackDefinition } from '@companion-module/base'
 import { CloudConfig } from './config'
-import { CreateBankControlId, InstanceBaseExt } from './utils'
+import { CreateLocationFromLocationText, CreateModuleControlId, InstanceBaseExt } from './utils'
+import { cloneDeep } from 'lodash'
 
 export type FeedbackId = 'change'
+
+export const CopyButtonStyleProperties = [
+	{ id: 'text', label: 'Text' },
+	{ id: 'size', label: 'Font Size' },
+	{ id: 'png64', label: 'PNG' },
+	{ id: 'alignment', label: 'Text Alignment' },
+	{ id: 'pngalignment', label: 'PNG Alignment' },
+	{ id: 'color', label: 'Color' },
+	{ id: 'bgcolor', label: 'Background' },
+]
 
 export function GetFeedbacks(instance: InstanceBaseExt<CloudConfig>): CompanionFeedbackDefinitions {
 	const feedbacks: { change: CompanionAdvancedFeedbackDefinition | undefined } = {
@@ -28,50 +39,107 @@ export function GetFeedbacks(instance: InstanceBaseExt<CloudConfig>): CompanionF
 			description: 'Keep up to date with remote button changes',
 			options: [
 				{
-					type: 'number',
-					label: 'Page',
-					id: 'page',
-					default: 1,
-					min: 1,
-					max: 99, // TODO: Get max pages from remote instance
+					type: 'dropdown',
+					label: 'Target',
+					id: 'location_target',
+					default: 'text',
+					choices: [
+						{ id: 'text', label: 'From text' },
+						{ id: 'expression', label: 'From expression' },
+					],
 				},
 				{
-					type: 'number',
-					label: 'Bank',
-					id: 'bank',
-					default: 1,
-					min: 1,
-					max: 32, // TODO: Get max banks from remote instance
+					type: 'textinput',
+					label: 'Remote button location (text with variables)',
+					tooltip: 'eg 1/0/0 or $(this:page)/$(this:row)/$(this:column)',
+					id: 'location_text',
+					default: '$(this:page)/$(this:row)/$(this:column)',
+					isVisible: (options) => options.location_target === 'text',
+					useVariables: {
+						locationBased: true,
+					} as any,
+				},
+				{
+					type: 'textinput',
+					label: 'Remote button location (expression)',
+					tooltip: 'eg `1/0/0` or `${$(this:page) + 1}/${$(this:row)}/${$(this:column)}`',
+					id: 'location_expression',
+					default: `concat($(this:page), '/', $(this:row), '/', $(this:column))`,
+					isVisible: (options) => options.location_target === 'expression',
+					useVariables: {
+						locationBased: true,
+					} as any,
+				},
+				{
+					type: 'dropdown',
+					label: 'Filter by properties',
+					id: 'filter_enabled',
+					default: 'no',
+					choices: [
+						{ id: 'no', label: 'No filter' },
+						{ id: 'yes', label: 'Only selected properties' },
+					],
+				},
+				{
+					id: 'filter',
+					label: 'Properties',
+					type: 'multidropdown',
+					minSelection: 1,
+					choices: CopyButtonStyleProperties,
+					default: CopyButtonStyleProperties.map((p) => p.id),
+					isVisible: (options) => options.filter_enabled === 'yes',
 				},
 			],
 			callback: (feedback) => {
-				const remoteControlId = CreateBankControlId(Number(feedback.options.page), Number(feedback.options.bank))
+				const remoteControl = CreateLocationFromLocationText(
+					feedback.options.location_text ? String(feedback.options.location_text) : ''
+				)
+				const remoteControlId = CreateModuleControlId(remoteControl)
 
 				if (instance.bankCache[remoteControlId]) {
 					if (typeof instance.bankCache[remoteControlId]?.data === 'object') {
-						// eslint-disable-next-line @typescript-eslint/no-unused-vars
-						const { show_topbar, ...rest } = instance.bankCache[remoteControlId].data
-						return { ...rest, cloud: true }
+						const data = cloneDeep(instance.bankCache[remoteControlId].data)
+						delete data.show_topbar
+
+						if (feedback.options.filter_enabled === 'yes') {
+							const filter = feedback.options.filter as string[]
+							const newData: { [key: string]: any } = {}
+							for (const key of filter) {
+								newData[key] = data[key]
+							}
+							return { ...newData, cloud: true }
+						} else {
+							return { ...data, cloud: true }
+						}
 					}
 				}
 
-				return { cloud: true }
+				return { text: '', cloud: true, cloud_error: true }
 			},
 			subscribe: (feedback) => {
-				const remoteControlId = CreateBankControlId(Number(feedback.options.page), Number(feedback.options.bank))
+				const location = CreateLocationFromLocationText(
+					feedback.options.location_text ? String(feedback.options.location_text) : ''
+				)
+				const remoteControlId = CreateModuleControlId(location)
 
-				instance.bankCache[remoteControlId] = {
-					...instance.bankCache[remoteControlId],
-					feedbackIds: [...(instance.bankCache[remoteControlId]?.feedbackIds || []), feedback.id],
+				instance.feedbackForControl[remoteControlId] = {
+					location,
+					feedbackIds: [...(instance.feedbackForControl[remoteControlId]?.feedbackIds || []), feedback.id],
 				}
 			},
 			unsubscribe: (feedback) => {
-				const remoteControlId = CreateBankControlId(Number(feedback.options.page), Number(feedback.options.bank))
-				instance.bankCache[remoteControlId] = {
-					...instance.bankCache[remoteControlId],
-					feedbackIds: (instance.bankCache[remoteControlId]?.feedbackIds || []).filter(
+				const location = CreateLocationFromLocationText(
+					feedback.options.location_text ? String(feedback.options.location_text) : ''
+				)
+				const remoteControlId = CreateModuleControlId(location)
+				instance.feedbackForControl[remoteControlId] = {
+					...instance.feedbackForControl[remoteControlId],
+					feedbackIds: (instance.feedbackForControl[remoteControlId]?.feedbackIds || []).filter(
 						(id: string) => id !== feedback.id
 					),
+				}
+				if (instance.feedbackForControl[remoteControlId].feedbackIds.length === 0) {
+					delete instance.feedbackForControl[remoteControlId]
 				}
 			},
 		},

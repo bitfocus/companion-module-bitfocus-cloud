@@ -24,14 +24,14 @@ import {
 import { GetConfigFields, CloudConfig } from './config'
 import { GetFeedbacks } from './feedback'
 import { CloudClient, CCModuleState, CCLogLevel } from 'companion-cloud-client'
-import { CCLogLevel2LogLevel, CCModuleState2InstanceState, CreateBankControlId } from './utils'
+import { CCLogLevel2LogLevel, CCModuleState2InstanceState, ControlLocation, CreateModuleControlId } from './utils'
 import { GetActions } from './actions'
 import { GetPresetList } from './presets'
 
 /**
  * @description Companion instance class for Zoom
  */
-class CloudInstance extends InstanceBase<CloudConfig> {
+export class CloudInstance extends InstanceBase<CloudConfig> {
 	public config: CloudConfig = {
 		uuid: '',
 	}
@@ -61,10 +61,31 @@ class CloudInstance extends InstanceBase<CloudConfig> {
 	public uuid = ''
 
 	/**
+	 * @description have we received the initial bank data?
+	 */
+	public receivedInitialBankData = false
+
+	/**
 	 * @description bank cache of remote companion
 	 */
-	public bankCache: { [controlId: string]: { data: Partial<CompanionButtonStyleProps> } & { feedbackIds: string[] } } =
-		{}
+	public bankCache: {
+		[controlId: string]: {
+			location: ControlLocation
+			bank?: number
+			page?: number
+			data: Partial<CompanionButtonStyleProps>
+		}
+	} = {}
+
+	/**
+	 * @description list of feedback ids for locations
+	 */
+	public feedbackForControl: {
+		[controlId: string]: {
+			location: ControlLocation
+			feedbackIds: string[]
+		}
+	} = {}
 
 	/**
 	 * @description the cloud client
@@ -115,6 +136,7 @@ class CloudInstance extends InstanceBase<CloudConfig> {
 				this.cloudState = newState
 
 				if (state === 'OK' && this.cloudClient) {
+					this.receivedInitialBankData = false
 					this.cloudClient
 						.clientCommand('allbanks')
 						.then((alldata: any) => {
@@ -125,14 +147,19 @@ class CloudInstance extends InstanceBase<CloudConfig> {
 							this.log('error', 'Failed to get initial banks from companion: ' + e.message)
 						})
 				}
+				if (state === 'ERROR') {
+					this.receivedInitialBankData = false
+					this.bankCache = {}
+					this.checkFeedbacks('change')
+				}
 			})
-			this.cloudClient.on('update', (page: number, bank: number, data: Partial<CompanionButtonStyleProps>) => {
-				this.updateSingle(page, bank, data)
+			this.cloudClient.on('update', (location, data: Partial<CompanionButtonStyleProps>) => {
+				this.updateSingle(location, data)
 				this.updatePresets()
 			})
 			this.cloudClient.on(
 				'updateAll',
-				(alldata: { page: number; bank: number; data: Partial<CompanionButtonStyleProps> }[]) => {
+				(alldata: { location: ControlLocation; data: Partial<CompanionButtonStyleProps> }[]) => {
 					this.updateAll(alldata)
 					this.updatePresets()
 				}
@@ -141,30 +168,35 @@ class CloudInstance extends InstanceBase<CloudConfig> {
 		}
 	}
 
-	updatePresets() {
+	updatePresets(): void {
 		this.presetDirty = true
 	}
 
-	updateSingle(page: number, bank: number, data: Partial<CompanionButtonStyleProps>) {
-		const remControlId = CreateBankControlId(page, bank)
+	updateSingle(location: ControlLocation, data: Partial<CompanionButtonStyleProps>): void {
+		// Wait for initial data before we start updating
+		if (!this.receivedInitialBankData) {
+			return
+		}
+		const remControlId = CreateModuleControlId(location)
 		this.bankCache[remControlId] = {
 			data,
-			feedbackIds: this.bankCache[remControlId]?.feedbackIds || [],
+			location,
 		}
-		for (const feedbackId of this.bankCache[remControlId]?.feedbackIds || []) {
+		for (const feedbackId of this.feedbackForControl[remControlId]?.feedbackIds || []) {
 			this.checkFeedbacksById(feedbackId)
 		}
 	}
 
-	updateAll(alldata: { page: number; bank: number; data: Partial<CompanionButtonStyleProps> }[]) {
-		for (const { page, bank, data } of alldata) {
-			const remControlId = CreateBankControlId(page, bank)
+	updateAll(alldata: { location: ControlLocation; data: Partial<CompanionButtonStyleProps> }[]): void {
+		for (const { location, data } of alldata) {
+			const remControlId = CreateModuleControlId(location)
 			this.bankCache[remControlId] = {
 				data,
-				feedbackIds: this.bankCache[remControlId]?.feedbackIds || [],
+				location,
 			}
 		}
 		this.checkFeedbacks('change')
+		this.receivedInitialBankData = true
 	}
 
 	/**
@@ -196,7 +228,7 @@ class CloudInstance extends InstanceBase<CloudConfig> {
 	/**
 	 * @description close connections and stop timers/intervals
 	 */
-	async destroy() {
+	async destroy(): Promise<void> {
 		this.log('info', 'destroying instance')
 		this.cloudClient?.destroy()
 		this.cloudClient = null

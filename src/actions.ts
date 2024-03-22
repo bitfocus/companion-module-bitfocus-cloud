@@ -16,7 +16,7 @@
  */
 import { CompanionActionDefinition, CompanionActionDefinitions } from '@companion-module/base'
 import { CloudConfig } from './config'
-import { InstanceBaseExt } from './utils'
+import { CreateLocationFromLocationText, InstanceBaseExt } from './utils'
 
 export enum ActionId {
 	buttonUp = 'buttonUp',
@@ -34,28 +34,46 @@ export function GetActions(_instance: InstanceBaseExt<CloudConfig>): CompanionAc
 			name: 'Release button',
 			options: [
 				{
-					type: 'number',
-					min: 1,
-					max: 99,
-					id: 'page',
-					default: 1,
-					label: 'Page',
+					type: 'dropdown',
+					label: 'Target',
+					id: 'location_target',
+					default: 'text',
+					choices: [
+						{ id: 'text', label: 'From text' },
+						{ id: 'expression', label: 'From expression' },
+					],
 				},
 				{
-					type: 'number',
-					min: 1,
-					max: 32,
-					id: 'bank',
-					default: 1,
-					label: 'Bank',
+					type: 'textinput',
+					label: 'Remote button location (text with variables)',
+					tooltip: 'eg 1/0/0 or $(this:page)/$(this:row)/$(this:column)',
+					id: 'location_text',
+					default: '$(this:page)/$(this:row)/$(this:column)',
+					isVisible: (options) => options.location_target === 'text',
+					useVariables: {
+						locationBased: true,
+					} as any,
+				},
+				{
+					type: 'textinput',
+					label: 'Remote button location (expression)',
+					tooltip: 'eg `1/0/0` or `${$(this:page) + 1}/${$(this:row)}/${$(this:column)}`',
+					id: 'location_expression',
+					default: `concat($(this:page), '/', $(this:row), '/', $(this:column))`,
+					isVisible: (options) => options.location_target === 'expression',
+					useVariables: {
+						locationBased: true,
+					} as any,
 				},
 			],
-			callback: async (_action): Promise<void> => {
+			callback: async (action): Promise<void> => {
 				if (_instance.cloudClient) {
 					try {
+						const location = CreateLocationFromLocationText(
+							action.options.location_text ? String(action.options.location_text) : ''
+						)
 						await _instance.cloudClient.clientCommand('release', {
-							page: _action.options.page,
-							bank: _action.options.bank,
+							location,
 						})
 					} catch (e) {
 						_instance.log('error', 'Failed to release button: ' + (e instanceof Error ? e.message : e))
@@ -67,28 +85,46 @@ export function GetActions(_instance: InstanceBaseExt<CloudConfig>): CompanionAc
 			name: 'Press button',
 			options: [
 				{
-					type: 'number',
-					min: 1,
-					max: 99,
-					id: 'page',
-					default: 1,
-					label: 'Page',
+					type: 'dropdown',
+					label: 'Target',
+					id: 'location_target',
+					default: 'text',
+					choices: [
+						{ id: 'text', label: 'From text' },
+						{ id: 'expression', label: 'From expression' },
+					],
 				},
 				{
-					type: 'number',
-					min: 1,
-					max: 32,
-					id: 'bank',
-					default: 1,
-					label: 'Bank',
+					type: 'textinput',
+					label: 'Remote button location (text with variables)',
+					tooltip: 'eg 1/0/0 or $(this:page)/$(this:row)/$(this:column)',
+					id: 'location_text',
+					default: '$(this:page)/$(this:row)/$(this:column)',
+					isVisible: (options) => options.location_target === 'text',
+					useVariables: {
+						locationBased: true,
+					} as any,
+				},
+				{
+					type: 'textinput',
+					label: 'Remote button location (expression)',
+					tooltip: 'eg `1/0/0` or `${$(this:page) + 1}/${$(this:row)}/${$(this:column)}`',
+					id: 'location_expression',
+					default: `concat($(this:page), '/', $(this:row), '/', $(this:column))`,
+					isVisible: (options) => options.location_target === 'expression',
+					useVariables: {
+						locationBased: true,
+					} as any,
 				},
 			],
-			callback: async (_action): Promise<void> => {
+			callback: async (action): Promise<void> => {
 				if (_instance.cloudClient) {
 					try {
+						const location = CreateLocationFromLocationText(
+							action.options.location_text ? String(action.options.location_text) : ''
+						)
 						await _instance.cloudClient.clientCommand('push', {
-							page: _action.options.page,
-							bank: _action.options.bank,
+							location,
 						})
 					} catch (e) {
 						_instance.log('error', 'Failed to release button: ' + (e instanceof Error ? e.message : e))

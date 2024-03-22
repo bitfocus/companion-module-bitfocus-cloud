@@ -1,10 +1,11 @@
 import { CompanionButtonPresetDefinition, CompanionPresetDefinitions, InstanceStatus } from '@companion-module/base'
 import { ActionId } from './actions'
-import { CloudConfig } from './config'
 import { FeedbackId } from './feedback'
-import { CreateBankControlId, InstanceBaseExt } from './utils'
+import { ControlLocation } from './utils'
+import { type CloudInstance } from './index'
 
 interface CompanionPresetExt extends CompanionButtonPresetDefinition {
+	locationSort: string
 	feedbacks: Array<
 		{
 			feedbackId: FeedbackId
@@ -26,70 +27,90 @@ interface CompanionPresetExt extends CompanionButtonPresetDefinition {
 interface CompanionPresetDefinitionsExt {
 	[id: string]: CompanionPresetExt | undefined
 }
-export function GetPresetList(_instance: InstanceBaseExt<CloudConfig>): CompanionPresetDefinitions {
+export function GetPresetList(instance: CloudInstance): CompanionPresetDefinitions {
 	const presets: CompanionPresetDefinitionsExt = {}
 
-	if (_instance.cloudState !== InstanceStatus.Ok && _instance.cloudState !== InstanceStatus.UnknownWarning) {
+	if (instance.cloudState !== InstanceStatus.Ok && instance.cloudState !== InstanceStatus.UnknownWarning) {
 		return presets
 	}
 
-	for (let page = 1; page <= 99; page++) {
-		for (let bank = 1; bank <= 32; bank++) {
-			const controlId = CreateBankControlId(page, bank)
-			const bankCache = _instance.bankCache[controlId]?.data || {}
-			const preset: CompanionPresetExt = {
-				name: `Page ${page} Bank ${bank}`,
-				style: {
-					text: '',
-					cloud: true,
-				} as any,
-				previewStyle: {
-					text: bankCache.text || '',
-					size: bankCache.size,
-					color: bankCache.color,
-					bgcolor: bankCache.bgcolor,
-					alignment: bankCache.alignment,
-					png64: bankCache.png64,
-					cloud: true,
-				} as any,
-				type: 'button',
-				category: 'Page ' + page,
-				feedbacks: [
-					{
-						feedbackId: 'change',
-						options: {
-							page: page,
-							bank: bank,
-						},
-					},
-				],
-				steps: [
-					{
-						down: [
-							{
-								actionId: ActionId.buttonDown,
-								options: {
-									page: page,
-									bank: bank,
-								},
-							},
-						],
-						up: [
-							{
-								actionId: ActionId.buttonUp,
-								options: {
-									page: page,
-									bank: bank,
-								},
-							},
-						],
-					},
-				],
-			}
-
-			presets[controlId] = preset
+	for (const controlId of Object.keys(instance.bankCache)) {
+		const control = instance.bankCache[controlId]
+		let location: ControlLocation = control.location
+		if (location === undefined && control.bank === undefined) {
+			continue
 		}
-	}
+		if (location === undefined) {
+			location = {
+				pageNumber: control.page ?? 0,
+				row: control.bank ?? 0,
+				column: 0,
+			}
+		}
 
-	return presets
+		const location_text = `${location.pageNumber}/${location.row}/${location.column}`
+
+		const bankCache = instance.bankCache[controlId]?.data || {}
+		const preset: CompanionPresetExt = {
+			name: `Button for ${location_text}`,
+			locationSort: location_text,
+			style: {
+				text: '',
+				cloud: true,
+			} as any,
+			previewStyle: {
+				text: bankCache.text || '',
+				size: bankCache.size,
+				color: bankCache.color,
+				bgcolor: bankCache.bgcolor,
+				alignment: bankCache.alignment,
+				png64: bankCache.png64,
+				cloud: true,
+			} as any,
+			type: 'button',
+			category: `Page ${location.pageNumber}`,
+			feedbacks: [
+				{
+					feedbackId: 'change',
+					options: {
+						location_target: 'text',
+						location_text: location_text,
+						filter_enabled: 'no',
+					},
+				},
+			],
+			steps: [
+				{
+					down: [
+						{
+							actionId: ActionId.buttonDown,
+							options: {
+								location_target: 'text',
+								location_text: location_text,
+							},
+						},
+					],
+					up: [
+						{
+							actionId: ActionId.buttonUp,
+							options: {
+								location_target: 'text',
+								location_text: location_text,
+							},
+						},
+					],
+				},
+			],
+		}
+
+		presets[controlId] = preset
+	}
+	const sorting = Object.keys(presets)
+		.map((id) => ({ id, data: presets[id] }))
+		.sort((a, b) => a.data?.locationSort.localeCompare(b.data?.locationSort ?? '', undefined, { numeric: true }) || 0)
+
+	return sorting.reduce((acc, cur) => {
+		acc[cur.id] = cur.data
+		return acc
+	}, {} as CompanionPresetDefinitionsExt)
 }
