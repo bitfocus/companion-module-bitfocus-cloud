@@ -216,6 +216,53 @@
   dependencies:
     "@sentry/types" "7.108.0"
 
+"@types/ag-auth@*":
+  version "1.0.3"
+  resolved "https://registry.yarnpkg.com/@types/ag-auth/-/ag-auth-1.0.3.tgz#4594685f4518b44cfe72e0fbe2b37f1a2e4eeb21"
+  integrity sha512-HUImW5ZaBJ1n3KvsjuwBr9o2+mmccmnpUXFDcv95+CtlfIbncDevoZI7h8W6LzXJJzJeajn9bp+lafYd/m5msg==
+  dependencies:
+    "@types/jsonwebtoken" "*"
+
+"@types/ag-channel@*":
+  version "5.0.3"
+  resolved "https://registry.yarnpkg.com/@types/ag-channel/-/ag-channel-5.0.3.tgz#598f640894f724b0eeb436351a43394046616cf0"
+  integrity sha512-vaZ8zdO034+A3tZlf42mkwXEfEH4kJXOlwJ4n8NID/ItBv6NEpMurr2EQBZGqP0/AUHoCQgvPDiD2Jvb0lYyyQ==
+  dependencies:
+    "@types/consumable-stream" "*"
+    "@types/stream-demux" "*"
+    "@types/writable-consumable-stream" "*"
+
+"@types/ag-request@*":
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/@types/ag-request/-/ag-request-1.0.0.tgz#20d73534342f72d7c44d639a0930b77811c99b73"
+  integrity sha512-TkEbkl6qW+b0fVgP9yoDZFGOa0ctI9GD8b/RygUZ/V06uIVunEUCkFqZ3mYk1g8xg0mYu4s5HjkDXwKsV3kr4g==
+
+"@types/ag-simple-broker@*":
+  version "6.0.0"
+  resolved "https://registry.yarnpkg.com/@types/ag-simple-broker/-/ag-simple-broker-6.0.0.tgz#ed2113822227805b0056851b771869cce31abc3f"
+  integrity sha512-rR9wgJV1IFUChF/qPRbWjPfnf8ujAfP0l8ua5M0xk7gW64wKYhwgX2e1S/lJw4nfjZ7oXqsEjTqn6ATNRRvRZQ==
+  dependencies:
+    "@types/ag-channel" "*"
+    "@types/async-stream-emitter" "*"
+    "@types/consumable-stream" "*"
+    "@types/socketcluster-server" "*"
+    "@types/writable-consumable-stream" "*"
+
+"@types/async-stream-emitter@*":
+  version "7.0.0"
+  resolved "https://registry.yarnpkg.com/@types/async-stream-emitter/-/async-stream-emitter-7.0.0.tgz#7a5bcf133a9fd22a2199bd115599f72dfa08c8ca"
+  integrity sha512-xPU+XOK12raFc70+l3d0pgMGJko4WYVGjyoLmJJbXsJMEFwBLJJHKDOmVhyh0hT6gVWtnBuNiLH0Xx+gZz7R7A==
+  dependencies:
+    "@types/consumable-stream" "*"
+    "@types/writable-consumable-stream" "*"
+
+"@types/consumable-stream@*":
+  version "3.0.0"
+  resolved "https://registry.yarnpkg.com/@types/consumable-stream/-/consumable-stream-3.0.0.tgz#f564ede1864d68d6508c5055a7aa01645d95eeaf"
+  integrity sha512-LzQwGfuCUc/ZdbNzXhXAHyqcnURwZhaW4oSvIpbedqUASBgJ+pjenQNKdu/pqM3+kgEl1VDmoiLZ2BFnQj3c5Q==
+  dependencies:
+    "@types/node" "*"
+
 "@types/eslint-scope@^3.7.3":
   version "3.7.4"
   resolved "https://registry.npmjs.org/@types/eslint-scope/-/eslint-scope-3.7.4.tgz"
@@ -262,6 +309,13 @@
   dependencies:
     "@types/node" "*"
 
+"@types/jsonwebtoken@*":
+  version "9.0.6"
+  resolved "https://registry.yarnpkg.com/@types/jsonwebtoken/-/jsonwebtoken-9.0.6.tgz#d1af3544d99ad992fb6681bbe60676e06b032bd3"
+  integrity sha512-/5hndP5dCjloafCXns6SZyESp3Ldq7YjH3zwzwczYnjxIT0Fqzk5ROSYVGfFyczIue7IUEj8hkvLbPoLQ18vQw==
+  dependencies:
+    "@types/node" "*"
+
 "@types/lodash@^4.17.0":
   version "4.17.0"
   resolved "https://registry.yarnpkg.com/@types/lodash/-/lodash-4.17.0.tgz#d774355e41f372d5350a4d0714abb48194a489c3"
@@ -289,20 +343,84 @@
   dependencies:
     undici-types "~5.26.4"
 
+"@types/node@^20.11.30":
+  version "20.11.30"
+  resolved "https://registry.yarnpkg.com/@types/node/-/node-20.11.30.tgz#9c33467fc23167a347e73834f788f4b9f399d66f"
+  integrity sha512-dHM6ZxwlmuZaRmUPfv1p+KrdD1Dci04FbdEm/9wEMouFqxYoFl5aMkt0VMAUtYRQDyYvD41WJLukhq/ha3YuTw==
+  dependencies:
+    undici-types "~5.26.4"
+
 "@types/ps-tree@^1.1.2":
   version "1.1.2"
   resolved "https://registry.npmjs.org/@types/ps-tree/-/ps-tree-1.1.2.tgz"
   integrity sha512-ZREFYlpUmPQJ0esjxoG1fMvB2HNaD3z+mjqdSosZvd3RalncI9NEur73P8ZJz4YQdL64CmV1w0RuqoRUlhQRBw==
+
+"@types/sc-errors@*":
+  version "1.4.3"
+  resolved "https://registry.yarnpkg.com/@types/sc-errors/-/sc-errors-1.4.3.tgz#870b236b9e89def382c58d8b2eb4015f91d29104"
+  integrity sha512-jfEm83yv/c5afmaXn9YUx0hxqOGTFcqBDyNOa0no9QE9vKdD1iiYvfN1iu6syy/6WQ0tCer0gAR95p+dnI/UMw==
 
 "@types/semver@^7.3.12":
   version "7.3.13"
   resolved "https://registry.npmjs.org/@types/semver/-/semver-7.3.13.tgz"
   integrity sha512-21cFJr9z3g5dW8B0CVI9g2O9beqaThGQ6ZFBqHfwhzLDKUxaqTIy3vnfah/UPkfOiF2pLq+tGz+W8RyCskuslw==
 
+"@types/socketcluster-client@^19.1.0":
+  version "19.1.0"
+  resolved "https://registry.yarnpkg.com/@types/socketcluster-client/-/socketcluster-client-19.1.0.tgz#dc490fdd9ac4e619954589fd4f2d932306655068"
+  integrity sha512-ZWiPno7aO1DKseMuSP+eeohFgnvRYpQQkd/bIjaZKQlxFJz2/0ufYo6tKCxFdjwC5IbxSvxUWhZcevRZCcGyww==
+  dependencies:
+    "@types/ag-channel" "*"
+    "@types/async-stream-emitter" "*"
+    "@types/consumable-stream" "*"
+    "@types/sc-errors" "*"
+    "@types/socketcluster-server" "*"
+    "@types/stream-demux" "*"
+    "@types/writable-consumable-stream" "*"
+    "@types/ws" "*"
+
+"@types/socketcluster-server@*":
+  version "19.0.1"
+  resolved "https://registry.yarnpkg.com/@types/socketcluster-server/-/socketcluster-server-19.0.1.tgz#59e277ac72e0ae88f7728307fba8208f9ae6f04c"
+  integrity sha512-YChXxNgn1RCUO4Km6scw0Liiq/E+9TDI+YHbmTdmw/AQGk7U7uVeIQyQdpYRosnWdY4uPbT1gKhJb0TPfAmfFg==
+  dependencies:
+    "@types/ag-auth" "*"
+    "@types/ag-request" "*"
+    "@types/ag-simple-broker" "*"
+    "@types/async-stream-emitter" "*"
+    "@types/consumable-stream" "*"
+    "@types/jsonwebtoken" "*"
+    "@types/sc-errors" "*"
+    "@types/stream-demux" "*"
+    "@types/writable-consumable-stream" "*"
+    "@types/ws" "*"
+
+"@types/stream-demux@*":
+  version "10.0.0"
+  resolved "https://registry.yarnpkg.com/@types/stream-demux/-/stream-demux-10.0.0.tgz#4185fceb50aec6fe51b4519311045e73f1bb5fc6"
+  integrity sha512-BQD0DEq7o07IROdAaKrj8GQS1QBKKRhXE18vCT3HgDF6HHk8z3wMKLQw+5rGm3snnyUHOepQd25p4U40hkJRhQ==
+  dependencies:
+    "@types/consumable-stream" "*"
+    "@types/writable-consumable-stream" "*"
+
 "@types/which@^3.0.0":
   version "3.0.3"
   resolved "https://registry.yarnpkg.com/@types/which/-/which-3.0.3.tgz#41142ed5a4743128f1bc0b69c46890f0453ddb89"
   integrity sha512-2C1+XoY0huExTbs8MQv1DuS5FS86+SEjdM9F/+GS61gg5Hqbtj8ZiDSx8MfWcyei907fIPbfPGCOrNUTnVHY1g==
+
+"@types/writable-consumable-stream@*":
+  version "4.1.0"
+  resolved "https://registry.yarnpkg.com/@types/writable-consumable-stream/-/writable-consumable-stream-4.1.0.tgz#f9f6386c8b45808b77076a8a09f99556e9da3880"
+  integrity sha512-Xdv1Ge8/MZHRe9KswZECHRxVQMTS5p3cbvgj9OohMcSKIcQbaKsoL1XazebdVcx/gH4tM4RRvVR4+Ifhfmp+hw==
+  dependencies:
+    "@types/consumable-stream" "*"
+
+"@types/ws@*":
+  version "8.5.10"
+  resolved "https://registry.yarnpkg.com/@types/ws/-/ws-8.5.10.tgz#4acfb517970853fa6574a3a6886791d04a396787"
+  integrity sha512-vmQSUcfalpIq0R9q7uTo2lXs6eGIpt9wtnLdMv9LVpIjCA/+ufZRozlVoVelIYixx1ugCBKDhn89vnsEGOCx9A==
+  dependencies:
+    "@types/node" "*"
 
 "@typescript-eslint/eslint-plugin@^5.59.9":
   version "5.62.0"
@@ -842,13 +960,16 @@ commander@^2.20.0:
   resolved "https://registry.npmjs.org/commander/-/commander-2.20.3.tgz"
   integrity sha512-GpVkmM8vF2vQUkj2LvZmD35JxeJOLCwJ9cUkugyk2nuhbv3+mJvpLYYt+0+USMxE+oj+ey/lJEnhZw75x/OMcQ==
 
-companion-cloud-client@^1.1.0:
-  version "1.1.0"
-  resolved "https://registry.yarnpkg.com/companion-cloud-client/-/companion-cloud-client-1.1.0.tgz#d17366701ba988e8c99b9c8470ca488fbbc840cf"
-  integrity sha512-iur509xaxIz4Yl+BpPZ/v+jLZLLrvRVYq9PQB8qMY+O8enw2WH/wmjcfcxetWnPvpXbXLa9/ccqJmyEXiUZr/w==
+companion-cloud-client@^1.1.1:
+  version "1.1.1"
+  resolved "https://registry.yarnpkg.com/companion-cloud-client/-/companion-cloud-client-1.1.1.tgz#f08f1d29edb32b063592c18c548a70f45bfffe87"
+  integrity sha512-djZIZSMvV0FZLS4JzcFPKuOiAErW5awHLNgx3KdRMRR62vQQwDUXacKpqLY/c3ZzTgS6cYIgSmfv3XTcHMxwtw==
   dependencies:
+    "@types/node" "^20.11.30"
+    "@types/socketcluster-client" "^19.1.0"
     axios "^1.6.0"
     socketcluster-client "^19.1.0"
+    strict-event-emitter-types "^2.0.0"
 
 concat-map@0.0.1:
   version "0.0.1"
@@ -2385,6 +2506,11 @@ stream-demux@^10.0.1:
   dependencies:
     consumable-stream "^3.0.0"
     writable-consumable-stream "^4.1.0"
+
+strict-event-emitter-types@^2.0.0:
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/strict-event-emitter-types/-/strict-event-emitter-types-2.0.0.tgz#05e15549cb4da1694478a53543e4e2f4abcf277f"
+  integrity sha512-Nk/brWYpD85WlOgzw5h173aci0Teyv8YdIAEtV+N88nDB0dLlazZyJMIsN6eo1/AR61l+p6CJTG1JIyFaoNEEA==
 
 string-argv@0.3.2:
   version "0.3.2"
